@@ -1,0 +1,9 @@
+*.exe
+*.o
+*.so
+*.dll
+*.pdb
+
+.vs/
+.idea/
+.vscode/

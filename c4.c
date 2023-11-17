@@ -56,16 +56,63 @@ Dec     --
 Brak    [
 */
 
-// opcodes
+
+// opcodes (like cpu instruments)
 enum
 {
     LEA ,IMM ,JMP ,JSR ,BZ  ,BNZ ,ENT ,ADJ ,LEV ,LI  ,LC  ,SI  ,SC  ,PSH ,
     OR  ,XOR ,AND ,EQ  ,NE  ,LT  ,GT  ,LE  ,GE  ,SHL ,SHR ,ADD ,SUB ,MUL ,DIV ,MOD ,
     OPEN,READ,CLOS,PRTF,MALC,FREE,MSET,MCMP,EXIT
 };
+/*
+Take x86 as an example
+
+MOV
+IMM:    load immediate value to ax
+LC:     load character to ax, address in ax
+LI:     load integer to ax, address in ax
+SC:     save character to address, value in ax, address on stack
+SI:     save integer to address, value in ax, address on stack
+
+PUSH
+PSH:    push the value of ax onto the stack
+
+JMP
+JMP:    jump to the address
+
+Operator
+OR      |
+XOR     ^
+AND     &
+EQ      ==
+NE      !=
+LT      <
+LE      <=
+GT      >
+GE      >=
+SHL     <<
+SHR     >>
+ADD     +
+SUB     -
+MUL     *
+DIV     /
+MOD     %
+
+Built-in Function
+else if (op == EXIT) { printf("exit(%d)", *sp); return *sp; }
+else if (op == OPEN) { ax = open((char *)sp[1], sp[0]); }
+else if (op == CLOS) { ax = close(*sp); }
+else if (op == FREE) { free(sp); }
+else if (op == READ) { ax = read(sp[2], (char *)sp[1], *sp); }
+else if (op == PRTF) { tmp = sp + pc[1]; ax = printf((char *)tmp[-1], tmp[-2], tmp[-3], tmp[-4], tmp[-5], tmp[-6]); }
+else if (op == MALC) { ax = (int)malloc(*sp); }
+else if (op == MSET) { ax = (int)memset((char *)sp[2], sp[1], *sp); }
+else if (op == MCMP) { ax = memcmp((char *)sp[2], (char *)sp[1], *sp); }
+*/
 
 // types
 enum { CHAR, INT, PTR };
+
 
 // identifier offsets (since we can't create an ident struct)
 enum { Tk, Hash, Name, Class, Type, Val, HClass, HType, HVal, Idsz };
