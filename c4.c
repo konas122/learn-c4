@@ -30,7 +30,7 @@ int *e, *le,  // current position in emitted code
 
 Id = identifier 用户定义的identifier
 
-//运算符
+// 运算符
 Assign  =
 Cond    ?
 Lor     ||
@@ -58,7 +58,7 @@ Brak    [
 
 /*
 id[Class] =
-Num  常量数值
+Num 常量数值
 Fun 函数
 Sys 系统调用
 Glo 全局变量
@@ -82,15 +82,15 @@ enum { CHAR, INT, PTR };
 
 
 // identifier offsets (since we can't create an ident struct)
-//因为作者没有实现结构体,所以[id]指向的空间被分割为Idsz大小的块(模拟结构体)
-//当id指向块首时,id[0] == id[Tk] 访问的就是Tk成员的数据(一般是指针)
-//Name 指向的是这个identifier的Name
-//Type 为数据类型(比如返回值类型),如CHAR,INT,INT+PTR
-//Class 为类型,如Num(常量数值),Fun(函数),Sys(系统调用),Glo全局变量,Loc 局部变量
+// 因为作者没有实现结构体,所以[id]指向的空间被分割为Idsz大小的块(模拟结构体)
+// 当id指向块首时,id[0] == id[Tk] 访问的就是Tk成员的数据(一般是指针)
+// Name 指向的是这个identifier的Name
+// Type 为数据类型(比如返回值类型),如CHAR,INT,INT+PTR
+// Class 为类型,如Num(常量数值),Fun(函数),Sys(系统调用),Glo全局变量,Loc 局部变量
 enum { Tk, Hash, Name, Class, Type, Val, HClass, HType, HVal, Idsz };
 
 
-//词法分析
+// 词法分析
 void next()
 {
     char *pp;
@@ -117,7 +117,7 @@ void next()
             while (*p != 0 && *p != '\n') ++p;
         }
         else if ((tk >= 'a' && tk <= 'z') || (tk >= 'A' && tk <= 'Z') || tk == '_') {
-            pp = p - 1;     //  因为有 ++p, pp 回退一个字符, pp 指向 [这个符号] 的首字母
+            pp = p - 1;     // 因为有 ++p, pp 回退一个字符, pp 指向 [这个符号] 的首字母
             while ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')
                 tk = tk * 147 + *p++;   // 计算哈希值,tk起始时已经等于*p,从p开始正确
             tk = (tk << 6) + (p - pp);  // 哈希值加上[符号长度]
@@ -138,7 +138,7 @@ void next()
         }
         else if (tk >= '0' && tk <= '9') {  // 第一位为数字,认为是数值
             if (ival = tk - '0') { while (*p >= '0' && *p <= '9') ival = ival * 10 + *p++ - '0'; }  // 第一位不为0,认为是十进制数
-            else if (*p == 'x' || *p == 'X') {  //第一位为0,且以x开头,认为是16进制数
+            else if (*p == 'x' || *p == 'X') {  // 第一位为0,且以x开头,认为是16进制数
                 while ((tk = *++p) && ((tk >= '0' && tk <= '9') || (tk >= 'a' && tk <= 'f') || (tk >= 'A' && tk <= 'F')))
                 ival = ival * 16 + (tk & 15) + (tk >= 'A' ? 9 : 0);
             }
@@ -263,7 +263,9 @@ void expr(int lev) {
         else { *++e = -1; *++e = PSH; expr(Inc); *++e = MUL; }  // 乘-1
         ty = INT;
     }
-    else if (tk == Inc || tk == Dec) {  // 处理++x,--x//x--,x++在后面处理
+    // 处理++x,--x
+    // x--,x++在后面处理
+    else if (tk == Inc || tk == Dec) {
         t = tk; next(); expr(Inc);
         // 处理++x,--x
         if (*e == LC) { *e = PSH; *++e = LC; }  // 地址压栈(下面SC/SI用到),再取数
@@ -334,10 +336,11 @@ void expr(int lev) {
             // PS:我终于知道哪些a=1;b=a+++a++为啥等于3了
             next();
         }
-        else if (tk == Brak) {//数组下标
-            next(); *++e = PSH; expr(Assign);//保存数组指针, 计算下标
+        // 数组下标
+        else if (tk == Brak) {
+            next(); *++e = PSH; expr(Assign);   // 保存数组指针, 计算下标
             if (tk == ']') next(); else { printf("%d: close bracket expected\n", line); exit(-1); }
-            if (t > PTR) { *++e = PSH; *++e = IMM; *++e = sizeof(int); *++e = MUL;  } //t==PTR时是Char,Char = 0
+            if (t > PTR) { *++e = PSH; *++e = IMM; *++e = sizeof(int); *++e = MUL;  }   // t==PTR时是Char,Char = 0
             else if (t < PTR) { printf("%d: pointer type expected\n", line); exit(-1); }
             *++e = ADD;
             *++e = ((ty = t - PTR) == CHAR) ? LC : LI;
@@ -404,8 +407,8 @@ int main(int argc, char **argv) {
     // bt basetype
     // poolsz 一系列池的大小
     int fd, bt, ty, poolsz, *idmain;
-    int *pc, *sp, *bp, a, cycle; // vm registers 虚拟器的寄存器
-    int i, *t; // temps
+    int *pc, *sp, *bp, a, cycle;    // vm registers 虚拟器的寄存器
+    int i, *t;  // temps
 
     --argc; ++argv;
     if (argc > 0 && **argv == '-' && (*argv)[1] == 's') { src = 1; --argc; ++argv; }
@@ -415,10 +418,10 @@ int main(int argc, char **argv) {
     if ((fd = open(*argv, 0)) < 0) { printf("could not open(%s)\n", *argv); return -1; }  // 打开文件
 
     poolsz = 256*1024; // arbitrary size
-    if (!(sym = malloc(poolsz))) { printf("could not malloc(%d) symbol area\n", poolsz); return -1; }//符号表
-    if (!(le = e = malloc(poolsz))) { printf("could not malloc(%d) text area\n", poolsz); return -1; }//// current position in emitted code
-    if (!(data = malloc(poolsz))) { printf("could not malloc(%d) data area\n", poolsz); return -1; }//数据段
-    if (!(sp = malloc(poolsz))) { printf("could not malloc(%d) stack area\n", poolsz); return -1; }//栈
+    if (!(sym = malloc(poolsz))) { printf("could not malloc(%d) symbol area\n", poolsz); return -1; }   // 符号表
+    if (!(le = e = malloc(poolsz))) { printf("could not malloc(%d) text area\n", poolsz); return -1; }  // current position in emitted code
+    if (!(data = malloc(poolsz))) { printf("could not malloc(%d) data area\n", poolsz); return -1; }    // 数据段
+    if (!(sp = malloc(poolsz))) { printf("could not malloc(%d) stack area\n", poolsz); return -1; }     // 栈
 
     memset(sym,  0, poolsz);
     memset(e,    0, poolsz);
@@ -472,46 +475,48 @@ int main(int argc, char **argv) {
         }
         // Enum 处理完tk == ';', 略过下面
         while (tk != ';' && tk != '}') {
-            ty = bt;//type 类型
-            while (tk == Mul) { next(); ty = ty + PTR; } // tk == Mul 表示已*开头,为指针类型,类型加PTR表示何种类型的指针
+            ty = bt;    // type 类型
+            while (tk == Mul) { next(); ty = ty + PTR; }    // tk == Mul 表示已*开头,为指针类型,类型加PTR表示何种类型的指针
             if (tk != Id) { printf("%d: bad global declaration\n", line); return -1; }
-            if (id[Class]) { printf("%d: duplicate global definition\n", line); return -1; } //重复全局变量定义,解释见后
+            if (id[Class]) { printf("%d: duplicate global definition\n", line); return -1; }    // 重复全局变量定义,解释见后
             next();
             id[Type] = ty;          // 赋值类型
             if (tk == '(') {        // 函数
                 id[Class] = Fun;    // 类型为函数型
-                id[Val] = (int)(e + 1); //函数指针? 在字节码中的偏移量/地址
+                id[Val] = (int)(e + 1); // 函数指针? 在字节码中的偏移量/地址
                 next(); i = 0;
-                while (tk != ')') {//参数列表
+                // 参数列表
+                while (tk != ')') {
                     ty = INT;
                     if (tk == Int) next();
                     else if (tk == Char) { next(); ty = CHAR; }
                     while (tk == Mul) { next(); ty = ty + PTR; }
                     if (tk != Id) { printf("%d: bad parameter declaration\n", line); return -1; }
-                    if (id[Class] == Loc) { printf("%d: duplicate parameter definition\n", line); return -1; } //函数参数是局部变量
-                    //备份符号信息,要进入函数上下文了
+                    if (id[Class] == Loc) { printf("%d: duplicate parameter definition\n", line); return -1; }  // 函数参数是局部变量
+                    // 备份符号信息,要进入函数上下文了
                     id[HClass] = id[Class]; id[Class] = Loc;
                     id[HType]  = id[Type];  id[Type] = ty;
-                    id[HVal]   = id[Val];   id[Val] = i++;//局部变量编号
+                    id[HVal]   = id[Val];   id[Val] = i++;  // 局部变量编号
                     next();
                     if (tk == ',') next();
                 }
                 next();
                 if (tk != '{') { printf("%d: bad function definition\n", line); return -1; }
-                loc = ++i; //局部变量偏移量
+                loc = ++i;  // 局部变量偏移量
                 next();
-                while (tk == Int || tk == Char) { //函数内变量声明
+                // 函数内变量声明
+                while (tk == Int || tk == Char) {
                     bt = (tk == Int) ? INT : CHAR;
                     next();
                     while (tk != ';') {
                         ty = bt;
-                        while (tk == Mul) { next(); ty = ty + PTR; }//处理指针型
+                        while (tk == Mul) { next(); ty = ty + PTR; }    // 处理指针型
                         if (tk != Id) { printf("%d: bad local declaration\n", line); return -1; }
                         if (id[Class] == Loc) { printf("%d: duplicate local definition\n", line); return -1; }
                         //备份符号信息
                         id[HClass] = id[Class]; id[Class] = Loc;
                         id[HType]  = id[Type];  id[Type] = ty;
-                        id[HVal]   = id[Val];   id[Val] = ++i; //存储变量偏移量
+                        id[HVal]   = id[Val];   id[Val] = ++i;  // 存储变量偏移量
                         next();
                         if (tk == ',') next();
                     }
